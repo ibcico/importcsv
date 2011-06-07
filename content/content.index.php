@@ -178,7 +178,7 @@ class contentExtensionImportcsvIndex extends AdministrationPage
         foreach ($result as $tableColumn)
         {
             if ($tableColumn['Field'] == 'value') {
-                $searchResult = Symphony::Database()->fetchVar('entry_id', 0, 'SELECT `entry_id` FROM `tbl_entries_data_' . $fieldID . '` WHERE `value` = \'' . addslashes(trim($value)) . '\';');
+                $searchResult = Symphony::Database()->fetchVar("entry_id", 0, "SELECT entry_id FROM tbl_entries_data_$fieldID WHERE value = '$value'");
                 if ($searchResult != false) {
                     return $searchResult;
                 } else {
@@ -257,7 +257,7 @@ class contentExtensionImportcsvIndex extends AdministrationPage
                 }
             }
         }
-
+				
         // When a unique value is found, see if there is an entry with the ID:
         if ($uniqueFound) {
             // See if there is an entry with this value:
