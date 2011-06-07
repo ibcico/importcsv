@@ -145,7 +145,7 @@ class contentExtensionImportcsvIndex extends AdministrationPage
             $html .= '<var class="csv-' . $count . '">';
 
             $i = 0;
-            foreach ($data as $value)
+            foreach ($data as $key => $value)
             {
                 $associatedFieldID = $_POST['field-' . $i];
                 if ($associatedFieldID != 0) {
