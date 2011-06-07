@@ -150,7 +150,7 @@ class contentExtensionImportcsvIndex extends AdministrationPage
                 $associatedFieldID = $_POST['field-' . $i];
                 if ($associatedFieldID != 0) {
                     $unique = $i == $uniqueField ? 'yes' : 'no';
-                    $html .= '<var field="' . $associatedFieldID . '" unique="' . $unique . '">' . $value . '</var>';
+                    $html .= '<var field="' . $associatedFieldID . '" unique="' . $unique . '" title="' . $key . '">' . $value . '</var>';
                 }
                 $i++;
             }
