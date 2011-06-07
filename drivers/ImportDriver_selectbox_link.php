@@ -27,11 +27,23 @@ class ImportDriver_selectbox_link extends ImportDriver_default
         // Import selectbox link:
         // Get the correct ID of the related fields
         $related_field = Symphony::Database()->fetchVar('related_field_id', 0, 'SELECT `related_field_id` FROM `tbl_fields_selectbox_link` WHERE `field_id` = ' . $this->field->get('id'));
+        $related_section = Symphony::Database()->fetchVar('parent_section', 0, 'SELECT `parent_section` FROM `tbl_fields` WHERE `id` = ' . $related_field);
         $data = $this->field->processRawFieldData(explode(',', $value), $this->field->__OK__);
         $related_ids = array('relation_id'=>array());
+        $em = new EntryManager($this);
         foreach ($data['relation_id'] as $key => $relationValue)
         {
-            $related_ids['relation_id'][] = Symphony::Database()->fetchVar('entry_id', 0, 'SELECT `entry_id` FROM `tbl_entries_data_' . $related_field . '` WHERE `value` = \'' . trim($relationValue) . '\';');
+        	$val = Symphony::Database()->fetchVar('entry_id', 0, 'SELECT `entry_id` FROM `tbl_entries_data_' . $related_field . '` WHERE `value` = \'' . trim($relationValue) . '\';');
+            if($val == ''){
+            	$handle = Lang::createHandle($value);
+            	$ent = $em->create();
+		        $ent->set('section_id', $related_section);
+		        $ent->setData($related_field, array('handle' => $handle, 'value'=> $value , 'value_formatted' => $value, 'word_count' => '0'));
+				$ent->commit();
+				$related_ids['relation_id'][] = $ent->get('id');
+            }else{
+            	$related_ids['relation_id'][] = $val;
+            }
         }
         return $related_ids;
         /*

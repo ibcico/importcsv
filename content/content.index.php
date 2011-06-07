@@ -288,6 +288,7 @@ class contentExtensionImportcsvIndex extends AdministrationPage
         {
             // When no unique field is found, treat it like a new entry
             // Otherwise, stop processing to safe CPU power.
+            $titles = $_POST['title'];
             if (substr($key, 0, 6) == 'field-') {
                 $a = explode('-', $key);
                 if (count($a) == 2) {
@@ -297,7 +298,7 @@ class contentExtensionImportcsvIndex extends AdministrationPage
                     $type = $field->get('type');
                     if (isset($drivers[$type])) {
                         $drivers[$type]->setField($field);
-                        $data = $drivers[$type]->import($value, $entryID);
+                        $data = $drivers[$type]->import($value, $entryID, $titles);
                     } else {
                         $drivers['default']->setField($field);
                         $data = $drivers['default']->import($value, $entryID);

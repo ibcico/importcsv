@@ -37,17 +37,34 @@ jQuery(function($){
 function importRow(nr)
 {
     currentEntry = nr;
-
+	var metakeys = [];
+	var metavalues = [];
     var csvRow = jQuery("var.csv-" + nr);
     var fields = {};
+	
+	jQuery("var", csvRow).each(function(){
+		if(jQuery(this).attr("field") == '147' && jQuery(this).text() != ''){
+			metakeys.push(jQuery(this).attr('title'));
+			metavalues.push(jQuery(this).text());
+		}
+	});
+	
     jQuery("var", csvRow).each(function(){
-        fields['field-' + jQuery(this).attr("field")] = jQuery(this).text();
+		if(jQuery(this).attr("field") == '147'){
+			fields['field-' + jQuery(this).attr("field")] = metavalues;
+			fields['title'] = metakeys;
+		}else{
+			fields['field-' + jQuery(this).attr("field")] = jQuery(this).text();
+		}       
     });
+	
     fields.ajax = 1;
     fields['unique-action'] = uniqueAction;
     fields['unique-field'] = uniqueField;
     fields['section-id'] = sectionID;
     
+	//console.log
+	
     jQuery.ajax({
         url: importURL,
         async: true,
