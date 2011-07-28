@@ -1,10 +1,11 @@
 var totalEntries;
-var currentEntry;
+var currentRow;
 var sectionID;
 var uniqueAction;
 var uniqueField;
 var importURL;
 var startTime;
+var fieldIDs;
 
 jQuery(function($){
     // Window resize function (for adjusting the height of the console):
@@ -19,6 +20,7 @@ jQuery(function($){
     uniqueAction = getVar('unique-action');
     uniqueField  = getVar('unique-field');
     importURL    = getVar('import-url');
+    fieldIDs     = getVar('field-ids');
 
     put('Start import of ' + totalEntries + ' entries; section ID: ' + sectionID + '; unique action: ' + uniqueAction);
 
@@ -26,45 +28,24 @@ jQuery(function($){
 
     if(totalEntries > 0)
     {
-        importRow(0);
+        importRows(0);
     }
 });
 
 /**
- * Import the current row.
- * @param nr    The number of the row to import
+ * Import 10 rows at the time
+ * @param nr
  */
-function importRow(nr)
+function importRows(nr)
 {
-    currentEntry = nr;
-	var metakeys = [];
-	var metavalues = [];
-    var csvRow = jQuery("var.csv-" + nr);
+    currentRow = nr;
     var fields = {};
-	
-	jQuery("var", csvRow).each(function(){
-		if(jQuery(this).attr("field") == '147' && jQuery(this).text() != ''){
-			metakeys.push(jQuery(this).attr('title'));
-			metavalues.push(jQuery(this).text());
-		}
-	});
-	
-    jQuery("var", csvRow).each(function(){
-		if(jQuery(this).attr("field") == '147'){
-			fields['field-' + jQuery(this).attr("field")] = metavalues;
-			fields['title'] = metakeys;
-		}else{
-			fields['field-' + jQuery(this).attr("field")] = jQuery(this).text();
-		}       
-    });
-	
     fields.ajax = 1;
     fields['unique-action'] = uniqueAction;
     fields['unique-field'] = uniqueField;
     fields['section-id'] = sectionID;
-    
-	//console.log
-	
+    fields['row'] = currentRow;
+    fields['field-ids'] = fieldIDs;
     jQuery.ajax({
         url: importURL,
         async: true,
@@ -73,21 +54,21 @@ function importRow(nr)
         data: fields,
         success: function(data, textStatus){
             c = data.substring(0, 4) == '[OK]' ? null : 'error';
-            put('Import entry ' + (currentEntry + 1) + ': ' + data, c);
-            jQuery("div.progress div.bar").css({width: ((currentEntry / totalEntries) * 100) + '%'});
+            till = ((currentRow + 1) * 10) <= totalEntries ? ((currentRow + 1) * 10) : totalEntries;
+            put('Import entries ' + ((currentRow * 10) + 1) + ' - ' + till  + ' : ' + data, c);
+            jQuery("div.progress div.bar").css({width: (((currentRow * 10) / totalEntries) * 100) + '%'});
             elapsedTime = new Date();
             ms = elapsedTime.getTime() - startTime.getTime();
             e = time(ms);
-            // eta = time(1 - (currentEntry / totalEntries) * ms);
-            p = (currentEntry / totalEntries);
+            p = ((currentRow * 10) / totalEntries);
             eta = time((ms * (1/p)) - ms);
 
             jQuery("div.progress div.bar").text('Elapsed time: ' + e + ' / Estimated time left: ' + eta);
 
             // Check if the next entry should be imported:
-            if(currentEntry < totalEntries - 1)
+            if(((currentRow + 1) * 10) < totalEntries)
             {
-                importRow(currentEntry + 1);
+                importRows(currentRow + 1);
             } else {
                 jQuery("div.progress div.bar").css({width: '100%'}).text('Import completed!');
                 put('Import completed!');
@@ -95,6 +76,7 @@ function importRow(nr)
             jQuery("div.console").attr({ scrollTop: jQuery("div.console").attr("scrollHeight") });
         }
     });
+
 }
 
 /**
@@ -115,7 +97,6 @@ function put(str, cls)
     c = cls == null ? '' : ' class="' + cls + '"';
     jQuery("div.console").append('<span'+c+'>' + str + '</span>');
 }
-
 
 function two(x) {return ((x>9)?"":"0")+x}
 

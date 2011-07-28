@@ -1,29 +1,54 @@
 <?php
 
 /*
- * Import Driver for type: metakeys
+ * Import Driver
+ *
+ * Each field should have a specific class for import-export functions.
+ * When none is found, the default fallback is this class.
  */
 
-class ImportDriver_metakeys extends ImportDriver_default {
+class ImportDriver_metakeys extends ImportDriver_default{
+
+    protected $type;
+    protected $field;
 
     /**
      * Constructor
      * @return void
      */
-    public function ImportDriver_select()
+    public function ImportDriver_default()
     {
         $this->type = 'metakeys';
     }
 
     /**
+     * Set a reference to the field object.
+     * @param  $field   The field
+     * @return void
+     */
+    public function setField($field)
+    {
+        $this->field = $field;
+    }
+
+    /**
+     * Get the type of the driver
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
      * Process the data so it can be imported into the entry.
-     * @param  $value   The value to import
+     * @param  $value       The value to import
      * @param  $entry_id    If a duplicate is found, an entry ID will be provided.
      * @return The data returned by the field object
      */
-    public function import($value, $entry_id = null, $titles)
-    {	
-        $data = $this->field->processRawFieldData(array('key' => $titles, 'value' => $value), $this->field->__OK__);
+    public function import($keys, $values, $entry_id = null)
+    {
+        $data = $this->field->processRawFieldData(array('key' => $keys, 'value' => $values), $this->field->__OK__, false, $entry_id);
         return $data;
     }
 
@@ -35,11 +60,32 @@ class ImportDriver_metakeys extends ImportDriver_default {
      */
     public function export($data, $entry_id = null)
     {
-        if(is_array($data['value']))
+        if(isset($data['value']))
         {
-            return implode(', ', $data['value']);
-        } else {
             return $data['value'];
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * Scan the database for a specific value
+     * @param  $value       The value to scan for
+     * @return null|string  The ID of the entry found, or null if no match is found.
+     */
+    public function scanDatabase($value)
+    {
+        $result = Symphony::Database()->fetch('DESCRIBE `tbl_entries_data_' . $this->field->get('id') . '`;');
+        foreach ($result as $tableColumn)
+        {
+            if ($tableColumn['Field'] == 'value') {
+                $searchResult = Symphony::Database()->fetchVar('entry_id', 0, 'SELECT `entry_id` FROM `tbl_entries_data_' . $this->field->get('id') . '` WHERE `value` = \'' . addslashes(trim($value)) . '\';');
+                if ($searchResult != false) {
+                    return $searchResult;
+                } else {
+                    return null;
+                }
+            }
         }
     }
 

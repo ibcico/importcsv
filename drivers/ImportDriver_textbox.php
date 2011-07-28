@@ -7,7 +7,7 @@
  * When none is found, the default fallback is this class.
  */
 
-class ImportDriver_default {
+class ImportDriver_textbox extends ImportDriver_default{
 
     protected $type;
     protected $field;
@@ -16,9 +16,9 @@ class ImportDriver_default {
      * Constructor
      * @return void
      */
-    public function ImportDriver_default()
+    public function ImportDriver_textbox()
     {
-        $this->type = 'default';
+        $this->type = 'textbox';
     }
 
     /**
@@ -75,11 +75,12 @@ class ImportDriver_default {
      */
     public function scanDatabase($value)
     {
+    	$handle = Lang::createHandle($value);
         $result = Symphony::Database()->fetch('DESCRIBE `tbl_entries_data_' . $this->field->get('id') . '`;');
         foreach ($result as $tableColumn)
         {
-            if ($tableColumn['Field'] == 'value') {
-                $searchResult = Symphony::Database()->fetchVar('entry_id', 0, 'SELECT `entry_id` FROM `tbl_entries_data_' . $this->field->get('id') . '` WHERE `value` = \'' . addslashes(trim($value)) . '\';');
+            if ($tableColumn['Field'] == 'handle') {
+                $searchResult = Symphony::Database()->fetchVar('entry_id', 0, 'SELECT `entry_id` FROM `tbl_entries_data_' . $this->field->get('id') . '` WHERE `handle` = \'' . addslashes(trim($handle)) . '\';');
                 if ($searchResult != false) {
                     return $searchResult;
                 } else {

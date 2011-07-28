@@ -1,19 +1,19 @@
 <?php
 
 /*
- * Import Driver for type: selectbox_link
+ * Import Driver for type: referencelink
  */
 
-class ImportDriver_selectbox_link extends ImportDriver_default
+class ImportDriver_referencelink extends ImportDriver_default
 {
 
     /**
      * Constructor
      * @return void
      */
-    public function ImportDriver_selectbox_link()
+    public function ImportDriver_referencelink()
     {
-        $this->type = 'selectbox_link';
+        $this->type = 'referencelink';
     }
 
     /**
@@ -24,26 +24,14 @@ class ImportDriver_selectbox_link extends ImportDriver_default
      */
     public function import($value, $entry_id = null)
     {
-        // Import selectbox link:
+        // Import reference link:
         // Get the correct ID of the related fields
-        $related_field = Symphony::Database()->fetchVar('related_field_id', 0, 'SELECT `related_field_id` FROM `tbl_fields_selectbox_link` WHERE `field_id` = ' . $this->field->get('id'));
-        $related_section = Symphony::Database()->fetchVar('parent_section', 0, 'SELECT `parent_section` FROM `tbl_fields` WHERE `id` = ' . $related_field);
+        $related_field = Symphony::Database()->fetchVar('related_field_id', 0, 'SELECT `related_field_id` FROM `tbl_fields_referencelink` WHERE `field_id` = ' . $this->field->get('id'));
         $data = $this->field->processRawFieldData(explode(',', $value), $this->field->__OK__);
         $related_ids = array('relation_id'=>array());
         foreach ($data['relation_id'] as $key => $relationValue)
         {
-        	$handle = Lang::createHandle($relationValue);
-        	$entry_id = Symphony::Database()->fetchVar('entry_id', 0, 'SELECT `entry_id` FROM `tbl_entries_data_' . $related_field . '` WHERE `handle` = \'' . trim($handle) . '\';');
-		    if($entry_id == ''){
-				$entrymanager = new EntryManager($this);
-            	$entry = $entrymanager->create();
-		        $entry->set('section_id', $related_section);
-		        $entry->setData($related_field, array('handle' => $handle, 'value'=> $relationValue , 'value_formatted' => $relationValue, 'word_count' => '0'));
-				$entry->commit();
-				$related_ids['relation_id'][] = $entry->get('id');
-            }else{
-            	$related_ids['relation_id'][] = $entry_id;
-            }
+            $related_ids['relation_id'][] = Symphony::Database()->fetchVar('entry_id', 0, 'SELECT `entry_id` FROM `tbl_entries_data_' . $related_field . '` WHERE `value` = \'' . trim($relationValue) . '\';');
         }
         return $related_ids;
         /*
@@ -62,7 +50,7 @@ class ImportDriver_selectbox_link extends ImportDriver_default
     public function export($data, $entry_id = null)
     {
         // Get the correct values of the related field
-        $related_field = Symphony::Database()->fetchVar('related_field_id', 0, 'SELECT `related_field_id` FROM `tbl_fields_selectbox_link` WHERE `field_id` = ' . $this->field->get('id'));
+        $related_field = Symphony::Database()->fetchVar('related_field_id', 0, 'SELECT `related_field_id` FROM `tbl_fields_referencelink` WHERE `field_id` = ' . $this->field->get('id'));
         if (!is_array($data['relation_id'])) {
             $data['relation_id'] = array($data['relation_id']);
         }
